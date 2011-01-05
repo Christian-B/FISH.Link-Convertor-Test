@@ -49,6 +49,8 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
     private DataPropertyTreeNode node;
 
+    private JButton loadConversion;
+
     private String[] originalNames = new String[0];
 
     private int selectedColumn = -1;
@@ -57,8 +59,10 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
     File ontologyFile;
 
+    File convertorFile;
+
     public ActionManager(Container container, CSV_Model model,  DataPropertyPane dataPropertyPane, InfoPanel infoPanel,
-                         StatusChecker statusChecker)
+                         StatusChecker statusChecker, JButton loadConversion)
     {
         this.container = container;
         this.model = model;
@@ -66,6 +70,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
         this.infoPanel = infoPanel;
         this.statusChecker = statusChecker;
         this.statusChecker.addActionListener(this);
+        this.loadConversion = loadConversion;
     }
 
     public void valueChanged(TreeSelectionEvent e) {
@@ -84,6 +89,8 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
            applyLowDetailProperty ();
         } else if (command.equals("Save to CSV")) {
             model.writeCSV();
+        } else if (command.equals("Load Conversion")) {
+            loadConversion();
         } else if (command.equals("Load from CSV")) {
             csvFile = model.loadFile((JButton)e.getSource(), this);
         } else if (command.equals("Save conversion")) {
@@ -252,8 +259,54 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
     }
 
     private void saveConvertorSettings() {
-        File file = chooseFile();
+        int overwrite = JOptionPane.NO_OPTION;
+        System.out.println(convertorFile);
+        if (convertorFile != null){
+            overwrite = JOptionPane.showConfirmDialog(container, "Overwrite " + convertorFile.getName() + " with new settings.", "Confirm Overwrite",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        }
+        File file;
+        if (overwrite == JOptionPane.NO_OPTION){
+            file = chooseFile();
+        } else {
+            file = convertorFile;
+        }
         saveConvertorSettings(file);
+    }
+
+    private void loadConversion(){
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(container);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            if (file.exists()) {
+                if (file.isFile()){
+                    file = chooser.getSelectedFile();
+                    //try {
+                        loadConversion(file);
+                        return;
+                        //ystem.out.println("You chose to open this file: " + file.getName());
+                    //} catch (FileNotFoundException ex) {
+                    //    JOptionPane.showMessageDialog(container, ex, "Input Error", JOptionPane.ERROR_MESSAGE);
+                    //} catch (IOException ex) {
+                    //    JOptionPane.showMessageDialog(container, ex, "Input Error", JOptionPane.ERROR_MESSAGE);
+                    //}
+                } else {
+                   JOptionPane.showMessageDialog(container, "Sorry file " + file.getName() + " is a directory","Can not read directory", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(container, "Sorry file " + file.getName() + " Does not exist", "File not found", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        convertorFile = null;
+    }
+
+    private void loadConversion (File file) {
+        convertorFile =  file;
+        loadConversion.setText("replace " + file.getName());
     }
 
     private void saveConvertorSettings(File file) {
@@ -292,7 +345,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
             transformer.transform(source, result);
 
-            System.out.println("Done");
+            loadConversion.setText("replace " + file.getName());
 
         }catch(ParserConfigurationException pce){
             pce.printStackTrace();

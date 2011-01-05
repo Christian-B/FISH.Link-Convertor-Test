@@ -54,11 +54,16 @@ public class MainFrame extends JFrame {
         //NORTH
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.X_AXIS));
+
+        JButton loadConversion = new JButton("Load Conversion");
+        loadConversion.setActionCommand("Load Conversion");
+        northPanel.add(loadConversion);
+
         JButton loadFromCSV = new JButton("Load from CSV");
         loadFromCSV.setActionCommand("Load from CSV");
-        
-        StatusChecker statusChecker = new StatusChecker();
         northPanel.add(loadFromCSV);
+
+        StatusChecker statusChecker = new StatusChecker();
         northPanel.add(statusChecker);
         this.getContentPane().add(northPanel, BorderLayout.NORTH);
 
@@ -78,9 +83,10 @@ public class MainFrame extends JFrame {
         DataPropertyPane dataPropertyPane =  new DataPropertyPane();
         this.getContentPane().add(dataPropertyPane, BorderLayout.EAST);
 
-        ActionManager actionManager = new ActionManager(this, model, dataPropertyPane, infoPanel, statusChecker);
+        ActionManager actionManager = new ActionManager(this, model, dataPropertyPane, infoPanel, statusChecker, loadConversion);
         applyButton.addActionListener(actionManager);
         table.getColumnModel().addColumnModelListener(actionManager);
+        loadConversion.addActionListener(actionManager);
         loadFromCSV.addActionListener(actionManager);
         statusChecker.addActionListener(actionManager);
         saveToCSV.addActionListener(actionManager);
