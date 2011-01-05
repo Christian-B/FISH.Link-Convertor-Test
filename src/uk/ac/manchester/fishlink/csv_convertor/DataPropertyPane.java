@@ -148,17 +148,17 @@ public class DataPropertyPane extends JScrollPane {
         category.add(vocab);
     }*/
 
-    public boolean checkName (String name){
+    public DataPropertyTreeNode checkName (String name){
         Enumeration e = top.breadthFirstEnumeration();
         while (e.hasMoreElements()) {
            DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
            if (node.getLevel() > 0){
                if (name.equals(((DataPropertyTreeNode)node).getName())){
-                   return true;
+                   return ((DataPropertyTreeNode)node);
                }
            }
        }
-       return false;
+       return null;
     }
     
     public String suggestName (String name){

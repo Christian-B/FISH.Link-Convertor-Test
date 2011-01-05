@@ -31,6 +31,8 @@ public class CSV_Model extends AbstractTableModel {
 
     private ArrayList<String[]> data = new ArrayList<String[]>(0);
 
+    private DataPropertyTreeNode[] dataProperties;
+
     private CSV_Table table;
 
     public CSV_Model(){
@@ -59,9 +61,16 @@ public class CSV_Model extends AbstractTableModel {
     }
 
     public void setColumnName(int column, String name){
-        columnNames[column] = name;
-        table.getColumnModel().getColumn(column).setHeaderValue(columnNames[column]);
-        table.getTableHeader().repaint();
+         if (columnNames[column].equals(name)){
+            columnNames[column] = name;
+            table.getColumnModel().getColumn(column).setHeaderValue(columnNames[column]);
+            table.getTableHeader().repaint();
+        }
+    }
+
+    public void setColumnNode(int column, DataPropertyTreeNode node){
+        dataProperties[column] = node;
+        setColumnName(column, node.getName());
     }
 
     @Override
@@ -88,7 +97,13 @@ public class CSV_Model extends AbstractTableModel {
         return new ConvertorType(data, column);
     }
 
-    
+    public DataPropertyType getDataPropertyType(int column){
+        if (dataProperties[column] == null){
+            return DataPropertyType.NULL;
+        }
+        return dataProperties[column].getDataPropertyType();
+    }
+
     public void setColumnNames (String[] names){
         columnNames = names;
         for (int i = 0; i < names.length; i++){
@@ -265,6 +280,7 @@ public class CSV_Model extends AbstractTableModel {
        }
        bufferedReader.close();
        setData(data);
+       dataProperties = new DataPropertyTreeNode[columnNames.length];
        actionManager.setOriginalNames(columnNames);
     }
 

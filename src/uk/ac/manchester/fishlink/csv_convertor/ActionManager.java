@@ -33,8 +33,6 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
     private StatusChecker statusChecker;
 
-    private OWLDataProperty[] dataProperties;
-
     private DataPropertyTreeNode node;
 
     private String fileName = "c:\\dropbox\\FISH.Link_code\\Tarns\\TarnschemFinal.csv";
@@ -74,8 +72,6 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
             fileName = model.loadFile((JButton)e.getSource(), this);
         } else if (command.equals("Save conversion")) {
             System.out.println("Save conversion");
-        } else if (command.equals(statusChecker.MAKE_NAMES_LEGAL)) {
-            model.setColumnNames(makeNamesLegal(model.getColumnNames(), false));
         } else{
             System.err.println(e);
         }
@@ -108,8 +104,8 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
     public final void setOriginalNames (String[] names){
         originalNames = names;
-        String[] columnNames = makeNamesLegal(names.clone(), false);
-        dataProperties = new OWLDataProperty[names.length];
+        String[] columnNames = names.clone();
+        makeNamesLegal(false);
     }
 
     public void setSelectedColumn(int column){
@@ -132,9 +128,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
     }
 
     private void applyDataProperty(){
-        model.setColumnName(selectedColumn, node.getName());
-        dataProperties[selectedColumn] = node.getUserObject();
-        checkNamesLegal(model.getColumnNames(), false);
+        model.setColumnNode(selectedColumn, node);
         infoPanel.updateColumn(originalNames[selectedColumn], node);
     }
 
@@ -146,20 +140,9 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
         }
     }
 
-    public boolean checkNamesLegal(String[] names, boolean interactive){
-        for (int i = 0; i< names.length; i++){
-            if (!names[i].matches("[a-zA-Z][\\w]*")) {
-                statusChecker.blackStatus("Please fix Illegal name: "+names[i]);
-                return false;
-            }
-        }
-        checkNamesInDataProperty(names, interactive);
-        return true;
-    }
-
-    public String[] makeNamesLegal(String[] names,  boolean interactive){
-        for (int i = 0; i< names.length; i++){
-            String temp = names[i];
+    public void makeNamesLegal( boolean interactive){
+        for (int column = 0; column < model.getColumnCount(); column++){
+            String temp = model.getColumnName(column);
            //System.out.println(temp);
             temp = temp.replace("+","Plus");
             temp = temp.replace("-","Minus");
@@ -168,8 +151,8 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
             int num = 0;
             String check = temp;
             do{
-                for (int j = 0; j < i-1; j++){
-                    if (check.equalsIgnoreCase(names[j])){
+                for (int j = 0; j < column-1; j++){
+                    if (check.equalsIgnoreCase(model.getColumnName(j))){
                         duplicate = true;
                     }
                 }
@@ -178,25 +161,31 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
                     check = temp + num;
                 }
             } while (duplicate);
-            names[i] = check;
-            //ystem.out.println(names[i]);
+            model.setColumnName(column, check);
         }
-        checkNamesInDataProperty(names, interactive);
-        return names;
+        checkNamesInDataProperty(interactive);
     }
 
-    public boolean checkNamesInDataProperty(String[] names, boolean interactive){
-        for (int i = 0; i< names.length; i++){
-            if (!dataPropertyPane.checkName(names[i])){
-                statusChecker.redStatus("Name: " + names[i] + " not found in vocabulary");
-                if (interactive) {
-                    JOptionPane.showMessageDialog(container, "Name: " + names[i] + " not found in vocabulary", "Illegal Name", JOptionPane.ERROR_MESSAGE);
-                }
-                return false;
+    public boolean checkNamesInDataProperty(boolean interactive){
+        boolean noError = true;
+        for (int column = 0; column < model.getColumnCount(); column++){
+            DataPropertyTreeNode byName = dataPropertyPane.checkName(model.getColumnName(column));
+            if (byName == null){
+                if (noError){
+                     statusChecker.redStatus("Name: " + model.getColumnName(column) + " not found in vocabulary");
+                     if (interactive) {
+                         JOptionPane.showMessageDialog(container, "Name: " + model.getColumnName(column) + " not found in vocabulary", "Illegal Name", JOptionPane.ERROR_MESSAGE);
+                     }
+                     noError = false;
+                 }
+             } else {
+                 model.setColumnNode(column, byName);
             }
         }
-        statusChecker.greenStatus();
-        return true;
+        if (noError){
+            statusChecker.greenStatus();
+        }
+        return noError;
     }
 
     public void loadDefaults(){
