@@ -1,0 +1,6 @@
+# Ignored files
+build
+build.xml
+nbproject
+manifest.mf
+
