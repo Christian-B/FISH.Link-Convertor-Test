@@ -284,7 +284,7 @@ public class CSV_Model extends AbstractTableModel {
        actionManager.setOriginalNames(columnNames);
     }
 
-    public String loadFile(JButton button, ActionManager actionManager){
+    public File loadFile(JButton button, ActionManager actionManager){
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV Files", "csv");
         chooser.setFileFilter(filter);
@@ -298,7 +298,7 @@ public class CSV_Model extends AbstractTableModel {
                         setCSV_File(file, actionManager);
                         button.setText ("Replace "+file.getName());
                         //ystem.out.println("You chose to open this file: " + file.getName());
-                        return file.getAbsolutePath();
+                        return file;
                     } catch (FileNotFoundException ex) {
                         JOptionPane.showMessageDialog(table, ex, "Input Error", JOptionPane.ERROR_MESSAGE);
                     } catch (IOException ex) {

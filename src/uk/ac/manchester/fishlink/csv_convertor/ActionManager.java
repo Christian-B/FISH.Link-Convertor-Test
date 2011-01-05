@@ -35,11 +35,13 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
 
     private DataPropertyTreeNode node;
 
-    private String fileName = "c:\\dropbox\\FISH.Link_code\\Tarns\\TarnschemFinal.csv";
-
     private String[] originalNames = new String[0];
 
     private int selectedColumn = -1;
+
+    File csvFile;
+
+    File ontologyFile;
 
     public ActionManager(Container container, CSV_Model model,  DataPropertyPane dataPropertyPane, InfoPanel infoPanel,
                          StatusChecker statusChecker)
@@ -69,7 +71,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
         } else if (command.equals("Save to CSV")) {
             model.writeCSV();
         } else if (command.equals("Load from CSV")) {
-            fileName = model.loadFile((JButton)e.getSource(), this);
+            csvFile = model.loadFile((JButton)e.getSource(), this);
         } else if (command.equals("Save conversion")) {
             System.out.println("Save conversion");
         } else{
@@ -189,9 +191,12 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
     }
 
     public void loadDefaults(){
-        dataPropertyPane.replaceOntology(new File("file:d:/Protege/Ontologies/vocab.owl"), this);
+        ontologyFile = new File("file:d:/Protege/Ontologies/vocab.owl");
+        dataPropertyPane.replaceOntology(ontologyFile, this);
+
         try {
-            model.setCSV_File(new File("c:/dropbox/FISH.Link_code/tarns/TarnschemFinal.csv"), this);
+            csvFile = new File("c:/dropbox/FISH.Link_code/tarns/TarnschemFinal.csv");
+            model.setCSV_File(csvFile, this);
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
