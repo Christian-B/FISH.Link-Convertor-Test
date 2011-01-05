@@ -25,6 +25,8 @@ public class CSV_Table extends JTable  {
         this.setRowSelectionAllowed(false);
         this.setColumnSelectionAllowed(true);
         this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        getTableHeader().setReorderingAllowed(false);
+
         model.setCSV_Table(this);
     }
 
