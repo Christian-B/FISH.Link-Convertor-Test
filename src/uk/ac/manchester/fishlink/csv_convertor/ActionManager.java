@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
@@ -15,7 +16,20 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -73,7 +87,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
         } else if (command.equals("Load from CSV")) {
             csvFile = model.loadFile((JButton)e.getSource(), this);
         } else if (command.equals("Save conversion")) {
-            System.out.println("Save conversion");
+            saveConvertorSettings();
         } else{
             System.err.println(e);
         }
@@ -142,7 +156,7 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
         }
     }
 
-    public void makeNamesLegal( boolean interactive){
+    public void makeNamesLegal (boolean interactive){
         for (int column = 0; column < model.getColumnCount(); column++){
             String temp = model.getColumnName(column);
            //System.out.println(temp);
@@ -203,4 +217,88 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
             ex.printStackTrace();
         }
     }
+
+    private void addColumnElements (Document doc, Element rootElement){
+        for (int column = 0; column < model.getColumnCount(); column++){
+            Element columnElement = doc.createElement("Column");
+            rootElement.appendChild(columnElement);
+            Attr attr = doc.createAttribute("OriginalName");
+	    attr.setValue(originalNames[column]);
+            columnElement.setAttributeNode(attr);
+            attr = doc.createAttribute("UpdatedName");
+	    attr.setValue(model.getColumnName(column));
+            columnElement.setAttributeNode(attr);
+        }
+    }
+
+    private File chooseFile(){
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+        chooser.setFileFilter(filter);
+        chooser.setAcceptAllFileFilterUsed(false);
+        int returnVal = chooser.showSaveDialog(container);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            File temp = chooser.getSelectedFile();
+            if (temp.exists()) {
+                int response = JOptionPane.showConfirmDialog(container, " File " + temp.getName() + " already exists. Ok to overwrite ", "Confirm Overwrite",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (response == JOptionPane.CANCEL_OPTION) {
+                    return null;
+                }
+            }
+            return temp;
+        }
+        return null;
+    }
+
+    private void saveConvertorSettings() {
+        File file = chooseFile();
+        saveConvertorSettings(file);
+    }
+
+    private void saveConvertorSettings(File file) {
+        try{
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+            //root element
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("Conversion");
+            doc.appendChild(rootElement);
+
+            //csv file element
+            Element csv_file = doc.createElement("CSV_File");
+            rootElement.appendChild(csv_file);
+            Attr attr = doc.createAttribute("Path");
+	    attr.setValue(csvFile.getAbsolutePath());
+            csv_file.setAttributeNode(attr);
+
+            //ontology file element
+            Element ontology_file = doc.createElement("Ontology_File");
+            rootElement.appendChild(ontology_file);
+            attr = doc.createAttribute("Path");
+	    attr.setValue(ontologyFile.getAbsolutePath());
+            ontology_file.setAttributeNode(attr);
+
+            addColumnElements (doc, rootElement);
+            
+            //write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result =  new StreamResult(file);
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+            transformer.transform(source, result);
+
+            System.out.println("Done");
+
+        }catch(ParserConfigurationException pce){
+            pce.printStackTrace();
+        }catch(TransformerException tfe){
+            tfe.printStackTrace();
+        }
+    }
+
 }
