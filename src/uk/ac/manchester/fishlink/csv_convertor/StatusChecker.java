@@ -14,7 +14,6 @@ import javax.swing.JButton;
  */
 public class StatusChecker extends JButton{
 
-    public final String MAKE_NAMES_LEGAL = "Make names Legal";
     public final String FIND_DATA_PROPERTY = "Find Data Property";
     public final String STATUS_GREEN = "Status Green";
 
@@ -25,16 +24,6 @@ public class StatusChecker extends JButton{
         setEnabled(false);
         setBackground(Color.WHITE);
         setForeground(Color.BLACK);
-    }
-
-    public void blackStatus(String detail){
-         setText(MAKE_NAMES_LEGAL);
-         setActionCommand(MAKE_NAMES_LEGAL);
-         this.setEnabled(true);
-         this.setBackground(Color.BLACK);
-         this.setForeground(Color.WHITE);
-         this.setToolTipText(detail);
-         //ystem.out.println(detail);
     }
 
     public void redStatus(String detail){
