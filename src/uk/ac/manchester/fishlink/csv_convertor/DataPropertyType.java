@@ -1,0 +1,17 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package uk.ac.manchester.fishlink.csv_convertor;
+
+/**
+ *
+ * @author Christian
+ */
+public enum DataPropertyType {
+
+    LEAF,
+    LOW_DETAIL,
+    PROPERTIES
+}
