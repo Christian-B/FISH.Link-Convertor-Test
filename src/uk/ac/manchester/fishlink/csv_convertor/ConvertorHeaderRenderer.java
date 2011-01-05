@@ -10,6 +10,7 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
+import uk.ac.manchester.fishlink.csv_convertor.DataPropertyType;
 
 /**
  *
@@ -20,20 +21,33 @@ public class ConvertorHeaderRenderer extends JLabel implements TableCellRenderer
     // using this renderer needs to be rendered.
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int rowIndex, int vColIndex) {
-        // 'value' is column header value of column 'vColIndex'
-        // rowIndex is always -1
-        // isSelected is always false
-        // hasFocus is always false
+        setText(value.toString());
 
         CSV_Model model = (CSV_Model)table.getModel();
-
-        // Configure the component with the specified value
-        setText(value.toString());
-        this.setForeground(Color.red);
-
-        // Set tool tip if desired
-        setToolTipText("HERE");
-
+        DataPropertyType type = model.getDataPropertyType(vColIndex);
+        switch (type){
+            case NULL:
+                this.setForeground(Color.RED);
+                setToolTipText("No matching data property");
+                break;
+            case LEAF:
+                this.setForeground(Color.GREEN);
+                setToolTipText("Column matched with a data property");
+                break;
+            case LOW_DETAIL:
+                this.setForeground(Color.YELLOW);
+                setToolTipText("Matching data property not at lowest possible level of detail");
+                break;
+            case PROPERTIES:
+                this.setForeground(Color.RED);
+                setToolTipText("Name matches a data properties group");
+                break;
+            default:
+                System.err.println("unexpected type found : "+type);
+                int error = 1/0;
+        }
+         // Set tool tip if desired
+ 
         // Since the renderer is a component, return itself
         return this;
     }
