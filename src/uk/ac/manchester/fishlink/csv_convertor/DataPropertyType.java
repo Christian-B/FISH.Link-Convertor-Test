@@ -11,6 +11,7 @@ package uk.ac.manchester.fishlink.csv_convertor;
  */
 public enum DataPropertyType {
 
+    NULL,
     LEAF,
     LOW_DETAIL,
     PROPERTIES
