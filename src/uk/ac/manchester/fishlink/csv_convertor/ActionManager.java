@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -30,6 +32,8 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -307,6 +311,44 @@ public class ActionManager implements TreeSelectionListener, ActionListener, Tab
     private void loadConversion (File file) {
         convertorFile =  file;
         loadConversion.setText("replace " + file.getName());
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+            Document doc = docBuilder.parse(file);
+
+            NodeList nodeList = doc.getElementsByTagName("Ontology_File");
+            Element element = (Element)nodeList.item(0);
+            String path = element.getAttribute("Path");
+            ontologyFile = new File(path);
+            dataPropertyPane.replaceOntology(ontologyFile, this);
+
+            nodeList = doc.getElementsByTagName("CSV_File");
+            element = (Element)nodeList.item(0);
+            path = element.getAttribute("Path");
+            csvFile = new File(path);
+            model.setCSV_File(csvFile, this);
+
+
+            nodeList = doc.getElementsByTagName("Column");
+            for (int i = 0; i < nodeList.getLength(); i++){
+                element = (Element)nodeList.item(i);
+                String originalName = element.getAttribute("OriginalName");
+                for (int j = 0; j < originalNames.length; j++){
+                    if (originalNames[j].equals(originalName)){
+                        String updatedName = element.getAttribute("UpdatedName");
+                        model.setColumnName(j, updatedName);
+                    }
+                }
+            }
+        } catch (SAXException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (ParserConfigurationException ex) {
+            ex.printStackTrace();
+        }
+        checkNamesInDataProperty(false);
     }
 
     private void saveConvertorSettings(File file) {

@@ -61,8 +61,9 @@ public class CSV_Model extends AbstractTableModel {
     }
 
     public void setColumnName(int column, String name){
-         if (columnNames[column].equals(name)){
+         if (!columnNames[column].equals(name)){
             columnNames[column] = name;
+            dataProperties[column] = null;
             table.getColumnModel().getColumn(column).setHeaderValue(columnNames[column]);
             table.getTableHeader().repaint();
         }
